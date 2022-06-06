@@ -130,7 +130,7 @@ function CheckCrop(cropName)
 
     if success then
 
-        -- If is Immersive Weathering weed, remove it
+        -- If grown or if it is Immersive Weathering weed, remove it
         if item.state.age == 7 or item.name == "immersive_weathering:weeds" then
             turtle.digDown()
             ReplaceCrop(cropName)
