@@ -1,18 +1,19 @@
 CONFIG = {
-    lenght = 9,
-    width = 12,
+    lenght = 16,
+    width = 16,
+    base_x = 0,
+    base_z = 0,
     slotsSeedsReserve = 1,
-    seed_name = "minecraft:wheat_seeds",
-    cropChestName = "ironchests:copper_chest",
+    compass_slot = 1,
+    tool_name = "minecraft:diamond_hoe",
+    seed_name = "minecraft:carrot",
+    cropChestName = "minecraft:chest",
     fuelChestName = "minecraft:chest",
-    MAX_FUEL = 64,
     GAIN_PER_FUEL = 80,
 }
 
-turtle = turtle
-
 function ReplaceCrop(cropname)
-    -- scans inventory for seeds if it finds it it places the seed
+    -- scans inventory for seeds. If it finds it, it places the seed
     for slot = 2, 16 do
         turtle.select(slot)
         local item = turtle.getItemDetail()
@@ -39,7 +40,7 @@ function IsCropChest()
 end
 
 function IsFuelChest()
-    local success, data = turtle.inspect()
+    local success, data = turtle.inspectUp()
 
     if success then
         if data.name == CONFIG.fuelChestName then
@@ -51,9 +52,9 @@ function IsFuelChest()
 end
 
 function TakeFuelFromChest()
-    local fuelInSlot = turtle.getItemCount(1)
-    local fuelToTake = CONFIG.MAX_FUEL - fuelInSlot
-    local result = turtle.suck(fuelToTake)
+    local fuelInSlot = turtle.getItemCount(2)
+    local fuelToTake = 64 - fuelInSlot
+    local result = turtle.suckUp(fuelToTake)
 
     if not result then
         error("TakeFuel unsuccessful - probably MISSING FUEL in FuelChest")
@@ -62,8 +63,8 @@ end
 
 function FuelToLimit()
     -- Fuel to max limit or to keep atleast one fuel in inventory slot
-    local missingFuel = turtle.getFuelLimit() - turtle.getFuelLevel()
-    local fuelInSlotAvailable = turtle.getItemCount(1)
+    local missingFuel = turtle.getFuelLimit() / 2 - turtle.getFuelLevel()
+    local fuelInSlotAvailable = turtle.getItemCount(2)
 
     local fuelToConsume = math.floor(missingFuel / CONFIG.GAIN_PER_FUEL)
 
@@ -76,16 +77,17 @@ function FuelToLimit()
         result = turtle.refuel(fuelToConsume)
     end
 
+    if turtle.getFuelLevel() > (turtle.getFuelLimit() / 2 + 1) then
+        error("ERROR: Fuel level is greater than set limit")
+    end
+
     if not result then
         error("Refueling wasn't successful")
     end
 end
 
 function Refuel()
-    turtle.select(1)
-
-    turtle.turnRight()
-    turtle.turnRight()
+    turtle.select(2)
 
     local result = IsFuelChest()
 
@@ -114,7 +116,7 @@ function TransferInventory()
         error("ERROR: There is no crop chest bellow me")
     end
 
-    local startSlot = 2 + CONFIG.slotsSeedsReserve
+    local startSlot = 3 + CONFIG.slotsSeedsReserve
 
     for slot = startSlot, 16 do
         turtle.select(slot)
@@ -130,8 +132,8 @@ function CheckCrop(cropName)
 
     if success then
 
-        -- If grown or if it is Immersive Weathering weed, remove it
-        if item.state.age == 7 or item.name == "immersive_weathering:weeds" then
+        -- If grown
+        if item.state.age == 7 then
             turtle.digDown()
             ReplaceCrop(cropName)
         end
@@ -142,55 +144,142 @@ function CheckCrop(cropName)
     end
 end
 
+function GetPosition()
+    return gps.locate()
+end
+
+function GetFacingDirection()
+    turtle.select(CONFIG.compass_slot)
+    local item = turtle.getItemDetail()
+
+    if item.name ~= "minecraft:compass" then
+        error("Error: Compass not detected!")
+    end
+
+    turtle.equipRight()
+    local compass = peripheral.find("compass")
+    local direction = compass.getFacing()
+    turtle.equipRight()
+    return direction
+end
+
+function EnsureToolEquipped()
+    turtle.select(CONFIG.compass_slot)
+    local item = turtle.getItemDetail()
+
+    if item.name == CONFIG.tool_name then
+        turtle.equipRight()
+        return
+    end
+
+    turtle.equipRight()
+
+    if item.name == CONFIG.tool_name then
+        turtle.equipRight()
+        return
+    end
+
+    error("Error: No " + CONFIG.tool_name + "detected!")
+end
+
+function SetDirection(newdir)
+    local currentdir = GetFacingDirection()
+    local directions = {}
+    directions["north"] = 1
+    directions["east"] = 2
+    directions["south"] = 3
+    directions["west"] = 4
+
+    while directions[newdir] ~= directions[currentdir] do
+        if directions[currentdir] == 1 and directions[newdir] == 4 then
+            turtle.turnLeft()
+        end
+        if directions[currentdir] == 4 and directions[newdir] == 1 then
+            turtle.turnRight()
+        end
+        if directions[currentdir] > directions[newdir] then
+            turtle.turnLeft()
+        end
+        if directions[currentdir] < directions[newdir] then
+            turtle.turnRight()
+        end
+    end
+end
+
+if CONFIG.width % 2 ~= 0 then
+    error("Width of the field has to be even number!")
+end
+
 while true do
 
-    TransferInventory()
-    Refuel()
-    -- Move turtle on the field
-    turtle.forward()
+    EnsureToolEquipped()
 
-    for i = 1, CONFIG.width do
+    local x, y, z = GetPosition()
+    local direction = GetFacingDirection()
 
-
-        for j = 1, CONFIG.lenght do
-
-            CheckCrop(CONFIG.seed_name)
-            turtle.forward()
-
-        end
-
-        if i < CONFIG.width then
-            if i % 2 == 0 then
-                turtle.turnRight()
-                turtle.forward()
-                turtle.turnRight()
-                turtle.forward()
-            else
-                turtle.turnLeft()
-                turtle.forward()
-                turtle.turnLeft()
-                turtle.forward()
-            end
-        end
-
+    if x < CONFIG.base_x or x > (CONFIG.base_x + CONFIG.lenght) or z < CONFIG.base_z or
+        z > (CONFIG.base_z + CONFIG.width) then
+        error("ERROR: Error in program - Turtle is out of field")
+        goto continue
     end
 
-    -- On the opossite side, return back
-    if CONFIG.width % 2 > 0 then
-        turtle.turnLeft()
-        turtle.turnLeft()
-        for i = 1, CONFIG.lenght do
-            turtle.forward()
-        end
+    if x == CONFIG.base_x and z == CONFIG.base_z then
+        TransferInventory()
+        Refuel()
+        SetDirection("south")
+        turtle.forward()
+        goto continue
     end
 
-    turtle.turnLeft()
-    for i = 1, CONFIG.width - 1 do
+    if z > CONFIG.base_z and z < (CONFIG.base_z + CONFIG.lenght) then
+        CheckCrop(CONFIG.seed_name)
+        turtle.forward()
+        goto continue
+    end
+
+    -- Going to the base
+    if z == CONFIG.base_z and direction == "west" then
+        turtle.forward()
+        goto continue
+    end
+
+    -- On the last block - now face to return home
+    if z == CONFIG.base_z and x == CONFIG.base_x + CONFIG.width then
+        SetDirection("west")
+        turtle.forward()
+        goto continue
+    end
+
+    -- on the northtest row, go to next column
+    if z == CONFIG.base_z then
+        CheckCrop(CONFIG.seed_name)
+        SetDirection("east")
+        turtle.forward()
+        CheckCrop(CONFIG.seed_name)
+        SetDirection("south")
+        turtle.forward()
+        goto continue
+    end
+
+    -- In the final south corner - need to turn north
+    if z == CONFIG.base_z + CONFIG.lenght and x == CONFIG.base_x + CONFIG.width then
+        CheckCrop(CONFIG.seed_name)
+        SetDirection("north")
         turtle.forward()
     end
 
-    turtle.turnLeft()
+    -- On the southtest row, go to next column
+    if z == CONFIG.base_z + CONFIG.lenght then
+        CheckCrop(CONFIG.seed_name)
+        SetDirection("east")
+        turtle.forward()
+        CheckCrop(CONFIG.seed_name)
+        SetDirection("north")
+        turtle.forward()
+        goto continue
+    end
 
+    ::continue::
     os.sleep(20)
 
 end
