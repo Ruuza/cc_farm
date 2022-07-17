@@ -220,66 +220,58 @@ while true do
     if x < CONFIG.base_x or x > (CONFIG.base_x + CONFIG.lenght) or z < CONFIG.base_z or
         z > (CONFIG.base_z + CONFIG.width) then
         error("ERROR: Error in program - Turtle is out of field")
-        goto continue
-    end
 
-    if x == CONFIG.base_x and z == CONFIG.base_z then
+
+    elseif x == CONFIG.base_x and z == CONFIG.base_z then
         TransferInventory()
         Refuel()
         SetDirection("south")
         turtle.forward()
-        goto continue
-    end
 
-    if z > CONFIG.base_z and z < (CONFIG.base_z + CONFIG.lenght) then
+
+    elseif z > CONFIG.base_z and z < (CONFIG.base_z + CONFIG.lenght) then
         CheckCrop(CONFIG.seed_name)
         turtle.forward()
-        goto continue
-    end
 
-    -- Going to the base
-    if z == CONFIG.base_z and direction == "west" then
+
+        -- Going to the base
+    elseif z == CONFIG.base_z and direction == "west" then
         turtle.forward()
-        goto continue
-    end
 
-    -- On the last block - now face to return home
-    if z == CONFIG.base_z and x == CONFIG.base_x + CONFIG.width then
+
+        -- On the last block - now face to return home
+    elseif z == CONFIG.base_z and x == CONFIG.base_x + CONFIG.width then
         SetDirection("west")
         turtle.forward()
-        goto continue
-    end
 
-    -- on the northtest row, go to next column
-    if z == CONFIG.base_z then
+
+        -- on the northtest row, go to next column
+    elseif z == CONFIG.base_z then
         CheckCrop(CONFIG.seed_name)
         SetDirection("east")
         turtle.forward()
         CheckCrop(CONFIG.seed_name)
         SetDirection("south")
         turtle.forward()
-        goto continue
-    end
 
-    -- In the final south corner - need to turn north
-    if z == CONFIG.base_z + CONFIG.lenght and x == CONFIG.base_x + CONFIG.width then
+
+        -- In the final south corner - need to turn north
+    elseif z == CONFIG.base_z + CONFIG.lenght and x == CONFIG.base_x + CONFIG.width then
         CheckCrop(CONFIG.seed_name)
         SetDirection("north")
         turtle.forward()
-    end
 
-    -- On the southtest row, go to next column
-    if z == CONFIG.base_z + CONFIG.lenght then
+
+        -- On the southtest row, go to next column
+    elseif z == CONFIG.base_z + CONFIG.lenght then
         CheckCrop(CONFIG.seed_name)
         SetDirection("east")
         turtle.forward()
         CheckCrop(CONFIG.seed_name)
         SetDirection("north")
         turtle.forward()
-        goto continue
     end
 
-    ::continue::
     os.sleep(20)
 
 end
