@@ -223,7 +223,7 @@ function HandlePlant()
 
     local success, data = turtle.inspect()
 
-    if ~success then
+    if not success then
         ReplaceSapling(CONFIG.sapling_name)
     elseif data.name == "minecraft:oak_log" then
         turtle.digUp()
