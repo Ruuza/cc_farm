@@ -63,7 +63,7 @@ end
 
 function FuelToLimit()
     -- Fuel to max limit or to keep atleast one fuel in inventory slot
-    local missingFuel = turtle.getFuelLimit() / 2 - turtle.getFuelLevel()
+    local missingFuel = turtle.getFuelLimit() / 10 - turtle.getFuelLevel()
     local fuelInSlotAvailable = turtle.getItemCount(2)
 
     local fuelToConsume = math.floor(missingFuel / CONFIG.GAIN_PER_FUEL)
@@ -77,7 +77,7 @@ function FuelToLimit()
         result = turtle.refuel(fuelToConsume)
     end
 
-    if turtle.getFuelLevel() > (turtle.getFuelLimit() / 2 + 1) then
+    if turtle.getFuelLevel() > (turtle.getFuelLimit() / 10 + 1) then
         error("ERROR: Fuel level is greater than set limit")
     end
 
@@ -172,14 +172,7 @@ function EnsureToolEquipped()
         return
     end
 
-    turtle.equipRight()
-
-    if item.name == CONFIG.tool_name then
-        turtle.equipRight()
-        return
-    end
-
-    error("Error: No " + CONFIG.tool_name + "detected!")
+    error("Error: No " .. CONFIG.tool_name .. "detected!")
 end
 
 function SetDirection(newdir)
@@ -203,6 +196,7 @@ function SetDirection(newdir)
         if directions[currentdir] < directions[newdir] then
             turtle.turnRight()
         end
+        currentdir = GetFacingDirection()
     end
 end
 
@@ -217,7 +211,7 @@ while true do
     local x, y, z = GetPosition()
     local direction = GetFacingDirection()
 
-    if x < CONFIG.base_x or x > (CONFIG.base_x + CONFIG.lenght) or z < CONFIG.base_z or
+    if x < CONFIG.base_x or x > (CONFIG.base_x + CONFIG.lenght - 1) or z < CONFIG.base_z or
         z > (CONFIG.base_z + CONFIG.width) then
         error("ERROR: Error in program - Turtle is out of field")
 
@@ -229,7 +223,7 @@ while true do
         turtle.forward()
 
 
-    elseif z > CONFIG.base_z and z < (CONFIG.base_z + CONFIG.lenght) then
+    elseif z > CONFIG.base_z and z < (CONFIG.base_z + CONFIG.lenght - 1) then
         CheckCrop(CONFIG.seed_name)
         turtle.forward()
 
@@ -256,14 +250,14 @@ while true do
 
 
         -- In the final south corner - need to turn north
-    elseif z == CONFIG.base_z + CONFIG.lenght and x == CONFIG.base_x + CONFIG.width then
+    elseif z == CONFIG.base_z + CONFIG.lenght - 1 and x == CONFIG.base_x + CONFIG.width then
         CheckCrop(CONFIG.seed_name)
         SetDirection("north")
         turtle.forward()
 
 
         -- On the southtest row, go to next column
-    elseif z == CONFIG.base_z + CONFIG.lenght then
+    elseif z == CONFIG.base_z + CONFIG.lenght - 1 then
         CheckCrop(CONFIG.seed_name)
         SetDirection("east")
         turtle.forward()
@@ -271,7 +265,5 @@ while true do
         SetDirection("north")
         turtle.forward()
     end
-
-    os.sleep(20)
 
 end
