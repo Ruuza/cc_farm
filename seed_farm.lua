@@ -101,9 +101,6 @@ function Refuel()
 
     TakeFuelFromChest()
 
-    turtle.turnRight()
-    turtle.turnRight()
-
 end
 
 function TransferInventory()
@@ -171,8 +168,6 @@ function EnsureToolEquipped()
         turtle.equipRight()
         return
     end
-
-    error("Error: No " .. CONFIG.tool_name .. "detected!")
 end
 
 function SetDirection(newdir)
@@ -186,14 +181,14 @@ function SetDirection(newdir)
     while directions[newdir] ~= directions[currentdir] do
         if directions[currentdir] == 1 and directions[newdir] == 4 then
             turtle.turnLeft()
-        end
-        if directions[currentdir] == 4 and directions[newdir] == 1 then
+
+        elseif directions[currentdir] == 4 and directions[newdir] == 1 then
             turtle.turnRight()
-        end
-        if directions[currentdir] > directions[newdir] then
+
+        elseif directions[currentdir] > directions[newdir] then
             turtle.turnLeft()
-        end
-        if directions[currentdir] < directions[newdir] then
+
+        elseif directions[currentdir] < directions[newdir] then
             turtle.turnRight()
         end
         currentdir = GetFacingDirection()
@@ -212,7 +207,7 @@ while true do
     local direction = GetFacingDirection()
 
     if x < CONFIG.base_x or x > (CONFIG.base_x + CONFIG.lenght - 1) or z < CONFIG.base_z or
-        z > (CONFIG.base_z + CONFIG.width) then
+        z > (CONFIG.base_z + CONFIG.width - 1) then
         error("ERROR: Error in program - Turtle is out of field")
 
 
@@ -234,7 +229,7 @@ while true do
 
 
         -- On the last block - now face to return home
-    elseif z == CONFIG.base_z and x == CONFIG.base_x + CONFIG.width then
+    elseif z == CONFIG.base_z and x == CONFIG.base_x + CONFIG.width - 1 then
         SetDirection("west")
         turtle.forward()
 
@@ -250,7 +245,7 @@ while true do
 
 
         -- In the final south corner - need to turn north
-    elseif z == CONFIG.base_z + CONFIG.lenght - 1 and x == CONFIG.base_x + CONFIG.width then
+    elseif z == CONFIG.base_z + CONFIG.lenght - 1 and x == CONFIG.base_x + CONFIG.width - 1 then
         CheckCrop(CONFIG.seed_name)
         SetDirection("north")
         turtle.forward()
