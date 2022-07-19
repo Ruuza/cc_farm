@@ -147,20 +147,21 @@ function SetDirection(newdir)
     directions["south"] = 3
     directions["west"] = 4
 
-    while directions[newdir] ~= directions[currentdir] do
-        if directions[currentdir] == 1 and directions[newdir] == 4 then
+    local currentdir_i = directions[currentdir]
+    while directions[newdir] ~= currentdir_i do
+        if currentdir_i == 1 and directions[newdir] == 4 then
             turtle.turnLeft()
-
-        elseif directions[currentdir] == 4 and directions[newdir] == 1 then
+            currentdir_i = 4
+        elseif currentdir_i == 4 and directions[newdir] == 1 then
             turtle.turnRight()
-
-        elseif directions[currentdir] > directions[newdir] then
+            currentdir_i = 1
+        elseif currentdir_i > directions[newdir] then
             turtle.turnLeft()
-
-        elseif directions[currentdir] < directions[newdir] then
+            currentdir_i = currentdir_i - 1
+        elseif currentdir_i < directions[newdir] then
             turtle.turnRight()
+            currentdir_i = currentdir_i + 1
         end
-        currentdir = GetFacingDirection()
     end
 end
 
@@ -264,12 +265,13 @@ while true do
             turtle.up()
             -- Turtle on top of the tree, now break all the logs
         elseif y == CONFIG.base_y + 6 then
-            while y <= CONFIG.base_y do
+            while y > CONFIG.base_y do
                 turtle.dig()
                 turtle.digDown()
                 turtle.down()
                 x, y, z = GetPosition()
             end
+            turtle.dig()
             HandlePlant()
         end
 
@@ -292,7 +294,7 @@ while true do
     elseif z == CONFIG.base_z and x == CONFIG.base_x + 6 then
         MoveInDirection("south")
 
-    elseif z == CONFIG.base_z or z == CONFIG.base_z + CONFIG.lenght then
+    elseif z == CONFIG.base_z or z == CONFIG.base_z + CONFIG.lenght - 1 then
         DestroyLeavesInFront()
         turtle.suck()
         turtle.forward()
