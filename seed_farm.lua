@@ -178,20 +178,21 @@ function SetDirection(newdir)
     directions["south"] = 3
     directions["west"] = 4
 
-    while directions[newdir] ~= directions[currentdir] do
-        if directions[currentdir] == 1 and directions[newdir] == 4 then
+    local currentdir_i = directions[currentdir]
+    while directions[newdir] ~= currentdir_i do
+        if currentdir_i == 1 and directions[newdir] == 4 then
             turtle.turnLeft()
-
-        elseif directions[currentdir] == 4 and directions[newdir] == 1 then
+            currentdir_i = 4
+        elseif currentdir_i == 4 and directions[newdir] == 1 then
             turtle.turnRight()
-
-        elseif directions[currentdir] > directions[newdir] then
+            currentdir_i = 1
+        elseif currentdir_i > directions[newdir] then
             turtle.turnLeft()
-
-        elseif directions[currentdir] < directions[newdir] then
+            currentdir_i = currentdir_i - 1
+        elseif currentdir_i < directions[newdir] then
             turtle.turnRight()
+            currentdir_i = currentdir_i + 1
         end
-        currentdir = GetFacingDirection()
     end
 end
 
