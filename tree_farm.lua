@@ -243,6 +243,12 @@ function MoveInDirection(direction)
     turtle.forward()
 end
 
+function TakeLeaves()
+    local leavesInSlot = turtle.getItemCount(3)
+    local leavesToTake = 64 - leavesInSlot
+    local result = turtle.suck(leavesToTake)
+end
+
 while true do
 
     EnsureToolEquipped()
@@ -253,7 +259,10 @@ while true do
     if x == CONFIG.base_x and z == CONFIG.base_z then
         TransferInventory()
         Refuel()
+        SetDirection("west")
+        TakeLeaves()
         SetDirection("south")
+        DestroyLeavesInFront()
         turtle.suck()
         turtle.forward()
 
@@ -261,8 +270,11 @@ while true do
     elseif y > CONFIG.base_y then
         -- Turtle not on top of the tree. Go up
         if y < CONFIG.base_y + 6 then
-            turtle.digUp()
-            turtle.up()
+            while y < CONFIG.base_y + 6 do
+                turtle.digUp()
+                turtle.up()
+                y = y + 1
+            end
             -- Turtle on top of the tree, now break all the logs
         elseif y == CONFIG.base_y + 6 then
             while y > CONFIG.base_y do
@@ -282,6 +294,13 @@ while true do
 
     elseif z == CONFIG.base_z and (direction == "west" or x == CONFIG.base_x + 9) then
         MoveInDirection("west")
+        x = x - 1
+        while x > CONFIG.base_x do
+            DestroyLeavesInFront()
+            turtle.suck()
+            turtle.forward()
+            x = x - 1
+        end
 
     elseif (z == CONFIG.base_z and x == CONFIG.base_x + 3) or
         (z == CONFIG.base_z + CONFIG.lenght - 1 and (x == CONFIG.base_x or x == CONFIG.base_x + 6))
